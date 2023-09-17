@@ -1,0 +1,313 @@
+openapi: 3.0.1
+info:
+  title: LifeGuard API
+  description: API documentation for RESTful web interactions
+  version: 0.0.0
+servers:
+  - url: http://129.146.23.77:1027
+    description: Test Server
+  - url: http://129.146.23.77:1026
+    description: Production server
+paths:
+  /user/{userToken}&{username}:
+    get:
+      summary: Returns a user.
+      parameters:
+        - $ref: "#/components/parameters/userTokenParam"
+        - $ref: "#/components/parameters/usernameParam"
+      responses:
+        '200':    # status cod1e
+          #The request succeeded
+          #GET: The resource has been fetched and transmitted in the message body.
+
+          description: A JSON object with user data, valid username
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/userSchema"
+        '401':
+          #Although the HTTP standard specifies "unauthorized", semantically this response means "unauthenticated". That is, the client must authenticate itself to get the requested response.
+
+          description: Empty JSON object, the user identification token is valid, but not linked to requested user data.
+          content:
+            application/json:
+              schema:
+                type: object
+        '403':
+          #The client does not have access rights to the content; that is, it is unauthorized, so the server is refusing to give the requested resource. Unlike 401 Unauthorized, the client's identity is known to the server.
+
+          description: Empty JSON object, the user identification token provided is not a valid user.
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          #The server cannot find the requested resource. In the browser, this means the URL is not recognized. In an API, this can also mean that the endpoint is valid but the resource itself does not exist. Servers may also send this response instead of 403 Forbidden to hide the existence of a resource from an unauthorized client. This response code is probably the most well known due to its frequent occurrence on the web.
+
+          description: Empty JSON object, invalid username supplied
+          content:
+            application/json:
+              schema:
+                type: object
+        '405':
+          #The request method is known by the server but is not supported by the target resource. For example, an API may not allow calling DELETE to remove a resource.
+
+          description: The request method (PUT, etc) is not supported
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ambiguousErrorSchema"
+    post:
+      summary: creates a user
+      parameters:
+        - $ref: "#/components/parameters/userTokenParam"
+        - $ref: "#/components/parameters/usernameParam"
+      responses:
+        '201':
+          #The request succeeded, and a new resource was created as a result. This is typically the response sent after POST requests, or some PUT requests.
+
+          description: The provided userToken is valid, and username is not already used, user created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/userSchema"
+        '401':
+          #Although the HTTP standard specifies "unauthorized", semantically this response means "unauthenticated". That is, the client must authenticate itself to get the requested response.
+
+          description: The provided userToken is not valid, username state is unknown, no user created
+          content:
+            application/json:
+              schema:
+                type: object
+        '403':
+          #The client does not have access rights to the content; that is, it is unauthorized, so the server is refusing to give the requested resource. Unlike 401 Unauthorized, the client's identity is known to the server.
+
+          description: The provided userToken is already being used, or the username is already being used
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ambiguousErrorSchema"
+        '405':
+          #The request method is known by the server but is not supported by the target resource. For example, an API may not allow calling DELETE to remove a resource.
+
+          description: The request method (PUT, DELETE, etc) is not supported
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ambiguousErrorSchema"
+        '408':
+          #This response is sent on an idle connection by some servers, even without any previous request by the client. It means that the server would like to shut down this unused connection. This response is used much more since some browsers, like Chrome, Firefox 27+, or IE9, use HTTP pre-connection mechanisms to speed up surfing. Also note that some servers merely shut down the connection without sending this message.
+
+          description: The POST request is taking to long to excecute
+          content:
+            application/json:
+              schema:
+                type: object
+    delete:
+      summary: deletes a user
+      parameters:
+        - $ref: "#/components/parameters/userTokenParam"
+        - $ref: "#/components/parameters/usernameParam"
+      responses:
+        '200':
+          description: The DELETE request was accepted, and the corresponding user was deleted, the deleted users data is returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/userSchema"
+  /device/{userToken}&{deviceID}:
+    get:
+      summary: get a device using a deviceID
+      parameters:
+        - $ref: "#/components/parameters/userTokenParam"
+        - $ref: "#/components/parameters/deviceIDParam"
+      responses:
+        '200':
+          #The request succeeded
+          #GET: The resource has been fetched and transmitted in the message body.
+
+          description: The provided userToken is valid, and the provided deviceID is linked to the userToken, returns device data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/deviceSchema"
+        '401':
+          #Although the HTTP standard specifies "unauthorized", semantically this response means "unauthenticated". That is, the client must authenticate itself to get the requested response.
+          description: The userToken is not recognized, the state of the device ID is not known
+          content:
+            application/json:
+              schema:
+                type: object
+        '403':
+          #The client does not have access rights to the content; that is, it is unauthorized, so the server is refusing to give the requested resource. Unlike 401 Unauthorized, the client's identity is known to the server.
+
+          description: The userToken is recognized, but the deviceID is not connected to the user's userToken
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          #The server cannot find the requested resource. In the browser, this means the URL is not recognized. In an API, this can also mean that the endpoint is valid but the resource itself does not exist. Servers may also send this response instead of 403 Forbidden to hide the existence of a resource from an unauthorized client. This response code is probably the most well known due to its frequent occurrence on the web.
+
+          description: The userToken is recognized, but the deviceID is not recognized
+          content:
+            application/json:
+              schema:
+                type: object
+        '405':
+          #The request method is known by the server but is not supported by the target resource. For example, an API may not allow calling DELETE to remove a resource.
+
+          description: The request method (PUT, DELETE, etc) is not supported
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ambiguousErrorSchema"
+    post:
+      summary: Add a device to a user
+      parameters:
+        - $ref: "#/components/parameters/userTokenParam"
+        - $ref: "#/components/parameters/deviceIDParam"
+      responses:
+        '201':
+          description: The device has been registered for the given
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/deviceSchema"
+        '401':
+          #Although the HTTP standard specifies "unauthorized", semantically this response means "unauthenticated". That is, the client must authenticate itself to get the requested response.
+          description: The userToken is not recognized, the state of the device ID is not known
+          content:
+            application/json:
+              schema:
+                type: object
+        '403':
+          #The client does not have access rights to the content; that is, it is unauthorized, so the server is refusing to give the requested resource. Unlike 401 Unauthorized, the client's identity is known to the server.
+
+          description: The userToken is recognized, but the deviceID is not connected to the user's userToken
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          #The server cannot find the requested resource. In the browser, this means the URL is not recognized. In an API, this can also mean that the endpoint is valid but the resource itself does not exist. Servers may also send this response instead of 403 Forbidden to hide the existence of a resource from an unauthorized client. This response code is probably the most well known due to its frequent occurrence on the web.
+
+          description: The userToken is recognized, but the deviceID is not recognized
+          content:
+            application/json:
+              schema:
+                type: object
+        '405':
+          #The request method is known by the server but is not supported by the target resource. For example, an API may not allow calling DELETE to remove a resource.
+
+          description: The request method (PUT, DELETE, etc) is not supported
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ambiguousErrorSchema"
+  /neighbors/{userToken}&{username}:
+    get:
+      summary: get an array of neighbors using a username
+      parameters:
+        - $ref: "#/components/parameters/userTokenParam"
+        - $ref: "#/components/parameters/deviceIDParam"
+      responses:
+        '200':
+          #The request succeeded
+          #GET: The resource has been fetched and transmitted in the message body.
+
+          description: A JSON array with neighbor phone numbers, the username and userToken valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/neighborSchema"
+        '401':
+          #Although the HTTP standard specifies "unauthorized", semantically this response means "unauthenticated". That is, the client must authenticate itself to get the requested response.
+
+          description: Empty JSON array, the user identification token is valid, but not linked to the requested user's neighbors.
+          content:
+            application/json:
+              schema:
+                type: array
+        '403':
+          #The client does not have access rights to the content; that is, it is unauthorized, so the server is refusing to give the requested resource. Unlike 401 Unauthorized, the client's identity is known to the server.
+
+          description: Empty JSON arrya, the user identification token provided is not a valid user.
+          content:
+            application/json:
+              schema:
+                type: array
+        '404':
+          #The server cannot find the requested resource. In the browser, this means the URL is not recognized. In an API, this can also mean that the endpoint is valid but the resource itself does not exist. Servers may also send this response instead of 403 Forbidden to hide the existence of a resource from an unauthorized client. This response code is probably the most well known due to its frequent occurrence on the web.
+
+          description: Empty JSON array, invalid username supplied
+          content:
+            application/json:
+              schema:
+                type: array
+        '405':
+          #The request method is known by the server but is not supported by the target resource. For example, an API may not allow calling DELETE to remove a resource.
+
+          description: The requested RESTful method (PUT, DELETE, etc) is not supported
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ambiguousErrorSchema"
+
+components:
+  schemas:
+    neighborSchema:
+      type: array
+      properties:
+        phoneNumber:
+          type: string
+    ambiguousErrorSchema:
+      type: object
+      properties:
+        explanation:
+          type: string
+    userSchema:
+      type: object
+      properties:
+        username:
+          type: string
+        deviceID:
+          type: integer
+        isHome:
+          type: boolean
+        poolIsSupervised:
+          type: boolean
+        neighborsPhoneNumbers:
+          type: array
+    deviceSchema:
+      type: object
+      properties:
+        deviceID:
+          type: integer
+        username:
+          description: (the connected user's username)
+          type: string
+  parameters:
+    userTokenParam:
+      name: userToken
+      in: path
+      description: authentication token created by auth0
+      required: true
+      schema:
+        type: string
+
+    usernameParam:
+      name: username
+      in: path
+      description: the unique id of a user
+      required: true
+      schema:
+        type: string
+    deviceIDParam:
+      name: deviceID
+      in: path
+      description: the unique id of a device
+      required: true
+      schema:
+        type: integer
+

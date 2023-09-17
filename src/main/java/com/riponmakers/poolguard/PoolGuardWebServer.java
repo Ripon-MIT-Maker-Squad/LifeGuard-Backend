@@ -21,11 +21,12 @@ public class PoolGuardWebServer {
 
         /*
          * Swagger API documentation server
-         *
          * */
 
+        //Automatically loads /resources/META-INF/openapi.yaml
         Config config = Config.create();
 
+        //create /openapi pathing
         Routing openAPIRouting = Routing.builder()
                 .register(OpenAPISupport.create(config))
                 .build();

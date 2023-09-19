@@ -1,5 +1,5 @@
 
-cd ~/code/PoolGuard-Backend || echo "did not cd (line: 2)"
+cd ~/code/LifeGuard-Backend || echo "did not cd (line: 2)"
 #remove distributions
 cd build/distributions || echo "did not cd (line 4)"
 

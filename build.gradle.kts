@@ -3,8 +3,8 @@ plugins {
     id("application")
 }
 
-group ="com.riponmakers.poolguard"
-version ="0.0.5"
+group ="com.riponmakers.lifeguard"
+version ="0.0.6"
 
 repositories {
     mavenCentral()
@@ -57,5 +57,5 @@ tasks.test {
 }
 
 application {
-    mainClass.set("com.riponmakers.poolguardian.Main")
+    mainClass.set("com.riponmakers.LifeGuardWebServer.Main")
 }

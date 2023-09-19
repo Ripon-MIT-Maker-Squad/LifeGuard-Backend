@@ -11,9 +11,9 @@ repositories {
 }
 
 dependencies {
-    testImplementation(platform("org.junit:junit-bom:5.9.1"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
-
+    /*
+    * HELIDON
+    * */
 
     implementation("io.helidon.openapi:helidon-openapi:2.6.0")
     implementation("io.helidon.integrations.openapi-ui:helidon-integrations-openapi-ui:3.2.2")
@@ -24,14 +24,32 @@ dependencies {
     implementation("io.helidon.health:helidon-health:3.2.2")
     implementation("io.helidon.health:helidon-health-checks:3.2.2")
     implementation("io.helidon.metrics:helidon-metrics:3.2.2")
+    testImplementation("io.helidon.webclient:helidon-webclient:3.2.2")
 
+    /*
+    * POSTGRESQL
+    * */
     implementation("org.postgresql:postgresql:42.6.0")
 
+
+    /*
+    * JSON
+    * */
+    implementation("org.json:json:20230227")
+
+
+    /*
+    * TESTING ENVIRONMENT
+    * */
     testImplementation("org.testcontainers:postgresql:1.18.3")
     testImplementation("org.testcontainers:testcontainers:1.18.3")
-    testImplementation("org.junit.jupiter:junit-jupiter-api")
     testImplementation("io.helidon.webclient:helidon-webclient:3.2.2")
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+    testImplementation(platform("org.junit:junit-bom:5.9.1"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+
 }
 
 tasks.test {

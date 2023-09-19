@@ -12,6 +12,7 @@
             <option value="$PROJECT_DIR$/src" />
             <option value="$PROJECT_DIR$/src/main" />
             <option value="$PROJECT_DIR$/src/main/tests" />
+            <option value="$PROJECT_DIR$/src/test" />
             <option value="$PROJECT_DIR$/src/tests" />
           </set>
         </option>

@@ -24,9 +24,9 @@ public class LifeGuardWebServer {
         */
 
         final UserDatabaseConnector databaseConnector = new UserDatabaseConnector(
-                "postgresql://localhost:5432/userDB",
-                "",
-                ""
+                "jdbc:postgresql://localhost:5432/lifeguardusers",
+                "LifeGuard",
+                "fc84*th4"
         );
 
         final UserService userService = new UserService(databaseConnector);
@@ -37,12 +37,11 @@ public class LifeGuardWebServer {
         * Extract the exposed parameters in the url to
         * validate and perform operations,
         * Comments provided directly from the LifeGuard API docs
-        *
         */
         Routing routing = Routing.builder()
                 // This post does not need a device id because that'll happen after
                 // the account is created
-            .post("/user/{userToken}&{username}", (req, res) -> {
+            .post("/user/?{userToken}&{username}", (req, res) -> {
                 Map<String, List<String>> params = req.queryParams().toMap();
 
                 // The user is missing required parameters

@@ -1,4 +1,4 @@
-rootProject.name = "PoolGuard-Backend"
+rootProject.name = "LifeGuard-Backend"
 include("src:main:tests")
 findProject(":src:main:tests")?.name = "tests"
 include("src:tests")

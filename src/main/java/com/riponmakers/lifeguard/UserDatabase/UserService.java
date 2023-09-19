@@ -19,7 +19,7 @@ public class UserService {
     public void createUser(User user) {
         try (Connection conn = this.databaseConnector.getConnection()) {
             PreparedStatement pstmt = conn.prepareStatement(
-                    "insert into users(username,deviceID,isHome,poolIsSupervised) values(?,?,?,?)"
+                    "insert into LifeGuardUsers(username,deviceID,isHome,poolIsSupervised) values(?,?,?,?)"
             );
 
             pstmt.setString(1, user.username());
@@ -39,7 +39,7 @@ public class UserService {
 
     public User getUser(String username) {
         try (Connection conn = this.databaseConnector.getConnection()) {
-            PreparedStatement pstmt = conn.prepareStatement("select username,deviceID,isHome,poolIsSupervised from Users '?'");
+            PreparedStatement pstmt = conn.prepareStatement("select username,deviceID,isHome,poolIsSupervised from LifeGuardUsers '?'");
             pstmt.setString(1, username);
             ResultSet rs = pstmt.executeQuery();
 
@@ -56,7 +56,7 @@ public class UserService {
         List<User> Users = new ArrayList<>();
 
         try (Connection conn = this.databaseConnector.getConnection()) {
-            PreparedStatement pstmt = conn.prepareStatement("select username,password,hedera_account_id from Users");
+            PreparedStatement pstmt = conn.prepareStatement("select username,deviceID,isHome,poolIsSupervised from LifeGuardUsers");
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
                 String username = rs.getString("username");
@@ -74,7 +74,7 @@ public class UserService {
         try (Connection conn = this.databaseConnector.getConnection()) {
             PreparedStatement pstmt = conn.prepareStatement(
                     """
-                            create table if not exists Users (
+                            create table if not exists LifeGuardUsers (
                                 username text not null,
                                 deviceID bigint not null,
                                 isHome boolean not null,

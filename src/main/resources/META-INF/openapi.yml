@@ -9,7 +9,7 @@ servers:
   - url: http://129.146.23.77:1026
     description: Production server
 paths:
-  /user/{userToken}&{username}:
+  /user/?{userToken}&{username}:
     get:
       summary: Returns a user.
       parameters:
@@ -71,22 +71,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/userSchema"
-        '401':
-          #Although the HTTP standard specifies "unauthorized", semantically this response means "unauthenticated". That is, the client must authenticate itself to get the requested response.
-
-          description: The provided userToken is not valid, username state is unknown, no user created
-          content:
-            application/json:
-              schema:
-                type: object
-        '403':
-          #The client does not have access rights to the content; that is, it is unauthorized, so the server is refusing to give the requested resource. Unlike 401 Unauthorized, the client's identity is known to the server.
-
-          description: The provided userToken is already being used, or the username is already being used
+        '400':
+          description: The url provided does not have the required information
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ambiguousErrorSchema"
+        '401':
+          #Although the HTTP standard specifies "unauthorized", semantically this response means "unauthenticated". That is, the client must authenticate itself to get the requested response.
+
+          description: The provided userToken is not known, username state is unknown, no user created
+          content:
+            application/json:
+              schema:
+                type: object
         '405':
           #The request method is known by the server but is not supported by the target resource. For example, an API may not allow calling DELETE to remove a resource.
 
@@ -115,7 +113,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/userSchema"
-  /device/{userToken}&{deviceID}:
+  /device/?{userToken}&{deviceID}:
     get:
       summary: get a device using a deviceID
       parameters:
@@ -205,7 +203,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ambiguousErrorSchema"
-  /neighbors/{userToken}&{username}:
+  /neighbors/?{userToken}&{username}:
     get:
       summary: get an array of neighbors using a username
       parameters:

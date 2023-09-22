@@ -9,7 +9,7 @@ servers:
   - url: http://129.146.23.77:1026
     description: Production server
 paths:
-  /user?userToken={userToken}&username={username}:
+  /user/?userToken={userToken}&username={username}:
     get:
       summary: Returns a user.
       parameters:
@@ -57,11 +57,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ambiguousErrorSchema"
-    post:
-      summary: creates a user
+    delete:
+      summary: deletes a user
       parameters:
         - $ref: "#/components/parameters/userTokenParam"
         - $ref: "#/components/parameters/usernameParam"
+      responses:
+        '200':
+          description: The DELETE request was accepted, and the corresponding user was deleted, the deleted users data is returned
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/userSchema"
+  /user:
+    post:
+      summary: creates a user
+      requestBody:
+        description: Optional description in *Markdown*
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/getUserSchema'
       responses:
         '201':
           #The request succeeded, and a new resource was created as a result. This is typically the response sent after POST requests, or some PUT requests.
@@ -101,18 +118,7 @@ paths:
             application/json:
               schema:
                 type: object
-    delete:
-      summary: deletes a user
-      parameters:
-        - $ref: "#/components/parameters/userTokenParam"
-        - $ref: "#/components/parameters/usernameParam"
-      responses:
-        '200':
-          description: The DELETE request was accepted, and the corresponding user was deleted, the deleted users data is returned
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/userSchema"
+
   /device/?userToken={userToken}&deviceID={deviceID}:
     get:
       summary: get a device using a deviceID
@@ -254,6 +260,14 @@ paths:
 
 components:
   schemas:
+    getUserSchema:
+      type: object
+      properties:
+        userToken:
+          type: string
+        username:
+          type: string
+
     neighborSchema:
       type: array
       properties:
@@ -308,4 +322,3 @@ components:
       required: true
       schema:
         type: integer
-

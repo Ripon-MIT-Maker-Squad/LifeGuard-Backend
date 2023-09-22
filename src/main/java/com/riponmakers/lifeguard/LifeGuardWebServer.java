@@ -4,6 +4,7 @@ package com.riponmakers.lifeguard;
 import com.riponmakers.lifeguard.UserDatabase.User;
 import com.riponmakers.lifeguard.UserDatabase.UserDatabaseConnector;
 import com.riponmakers.lifeguard.UserDatabase.UserService;
+import io.helidon.common.reactive.Multi;
 import io.helidon.config.Config;
 import io.helidon.openapi.OpenAPISupport;
 import io.helidon.webserver.Routing;
@@ -85,39 +86,60 @@ public class LifeGuardWebServer {
                     res.send("This is the default pathing");
                 })
                 .post("/user", (req, res) -> {
-                    Map<String, List<String>> params = req.queryParams().toMap();
+                    req.content().as(String.class)
+                            .thenAccept(body -> {
+                                JSONObject jsonBody = new JSONObject(body);
 
-                    // The user is missing required parameters
-                    if(params.get("userToken").size() != 1 || params.get("username").size() != 1) {
-                        String exp = params.get("userToken").size() != 1 ? "userToken is not provided" : "username is not provided";
-                        jsonObject.put("explanation", exp);
+                                if(jsonBody.getString("userToken") == null || jsonBody.getString("username") == null) {
+                                    String exp = jsonBody.getString("userToken") == null ? "userToken is not provided" : "username is not provided";
+                                    jsonObject.put("explanation", exp);
 
-                        res.status(400);
-                        res.send(jsonObject);
-                    }
+                                    res.status(400);
+                                    res.send(jsonObject);
+                                }
 
-                    String username = params.get("username").get(0);
-                    //TODO 401 403, 405, 408
+                                String username = jsonBody.getString("username");
                     //The provided userToken is already being used, or the username
                     // is already being used
-                    if(userService.getUser(username) != null) {
-                        jsonObject.put("explanation", "username is already being used");
+                                if(userService.getUser(username) != null) {
+                                    jsonObject.put("explanation", "username is already being used");
 
-                        res.status(403);
-                        res.send(jsonObject);
-                    }
+                                    res.status(403);
+                                    res.send(jsonObject);
+                                }
 
-                    //The provided userToken is valid, and username is not already used,
-                    // user created.
-                    userService.createUser(new User(
-                            username,
-                            -1,
-                            true,
-                            false
-                    ));
+                                // Send a response
+                                res.send("Received the body: " + jsonBody);
+                            })
+                            .exceptionally(throwable -> {
+                                // Handle any exceptions that occur during processing
+                                res.status(500).send("Error processing request body: " + throwable.getMessage() );
+                                return null;
+                            });
+                    /*
+//
+//                    String username = params.get("username").get(0);
+//                    //TODO 401 403, 405, 408
+//                    //The provided userToken is already being used, or the username
+//                    // is already being used
+
+//
+//                    //The provided userToken is valid, and username is not already used,
+//                    // user created.
+//                    userService.createUser(new User(
+//                            username,
+//                            -1,
+//                            true,
+//                            false
+//                    ));
+*/
+
                 })
                 .build();
-
         return routing;
+    }
+
+    private void postUser() {
+
     }
 }

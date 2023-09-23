@@ -5,14 +5,14 @@
 //import java.sql.PreparedStatement;
 //import java.util.List;
 //
-//import com.riponmakers.poolguard.UserDatabase.User;
-//import com.riponmakers.poolguard.UserDatabase.UserDatabaseConnector;
+//import com.riponmakers.lifeguard.UserDatabase.User;
+//import com.riponmakers.lifeguard.UserDatabase.UserDatabaseConnector;
 //import org.junit.jupiter.api.AfterAll;
 //import org.junit.jupiter.api.BeforeAll;
 //import org.junit.jupiter.api.BeforeEach;
 //import org.junit.jupiter.api.Test;
 //import org.testcontainers.containers.PostgreSQLContainer;
-//import com.riponmakers.poolguard.UserDatabase.UserService;
+//import com.riponmakers.lifeguard.UserDatabase.UserService;
 //
 //class UserServiceTest {
 //    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(

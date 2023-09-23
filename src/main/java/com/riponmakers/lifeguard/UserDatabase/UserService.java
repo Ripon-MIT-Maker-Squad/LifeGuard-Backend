@@ -9,17 +9,19 @@ import java.util.List;
 
 public class UserService {
     private final UserDatabaseConnector databaseConnector;
+    private final String databaseName;
 
-    public UserService(UserDatabaseConnector dbc) {
+    public UserService(UserDatabaseConnector dbc, String databaseName) {
         databaseConnector = dbc;
+        this.databaseName = databaseName;
 
-        tryCreateUsersTable();
+//        tryCreateUsersTable();
     }
 
     public void createUser(User user) {
         try (Connection conn = this.databaseConnector.getConnection()) {
             PreparedStatement pstmt = conn.prepareStatement(
-                    "insert into LifeGuardUsers(username,deviceID,isHome,poolIsSupervised) values(?,?,?,?)"
+                        "insert into " + databaseName + "(username,deviceid,ishome,poolissupervised) values(?,?,?,?)"
             );
 
             pstmt.setString(1, user.username());
@@ -28,8 +30,7 @@ public class UserService {
             pstmt.setBoolean(4, user.poolIsSupervised());
             pstmt.execute();
         } catch (SQLException e) {
-
-            throw new RuntimeException(e);
+            throw new RuntimeException("createUser error\n" + e);
         }
     }
 
@@ -37,32 +38,44 @@ public class UserService {
 
     }
 
-    public User getUser(String username) {
+    public User getUser(String username) throws SQLException {
         try (Connection conn = this.databaseConnector.getConnection()) {
-            PreparedStatement pstmt = conn.prepareStatement("select username,deviceID,isHome,poolIsSupervised from LifeGuardUsers '?'");
+            PreparedStatement pstmt = conn.prepareStatement("select username,deviceid,ishome,poolissupervised from " + databaseName + " where username = ?");
             pstmt.setString(1, username);
             ResultSet rs = pstmt.executeQuery();
 
-            return new User(
-                    username,
-                    rs.getLong("deviceID"),
-                    rs.getBoolean("isHome"),
-                    rs.getBoolean("poolIsSupervised"));
+            if (rs.next()) {
+                long deviceID = rs.getLong("deviceid");
+                boolean isHome = rs.getBoolean("ishome");
+                boolean poolIsSupervised = rs.getBoolean("poolissupervised");
+
+                return new User(
+                        username,
+                        deviceID,
+                        isHome,
+                        poolIsSupervised);
+            }
+
+// Close the ResultSet and statement when done
+            rs.close();
+            pstmt.close();
+
+            return null;
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("getuser error\n" + e);
         }
     }
     public List<User> getAllUsers() {
         List<User> Users = new ArrayList<>();
 
         try (Connection conn = this.databaseConnector.getConnection()) {
-            PreparedStatement pstmt = conn.prepareStatement("select username,deviceID,isHome,poolIsSupervised from LifeGuardUsers");
+            PreparedStatement pstmt = conn.prepareStatement("select username,deviceid,ishome,poolissupervised from  " + databaseName);
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
                 String username = rs.getString("username");
-                long deviceID = rs.getLong("deviceID");
-                boolean isHome = rs.getBoolean("isHome");
-                boolean poolIsSupervised = rs.getBoolean("poolIsSupervised");
+                long deviceID = rs.getLong("deviceid");
+                boolean isHome = rs.getBoolean("ishome");
+                boolean poolIsSupervised = rs.getBoolean("poolissupervised");
                 Users.add(new User(username, deviceID, isHome, poolIsSupervised));
             }
         } catch (SQLException e) {
@@ -70,21 +83,21 @@ public class UserService {
         }
         return Users;
     }
-    private void tryCreateUsersTable() {
-        try (Connection conn = this.databaseConnector.getConnection()) {
-            PreparedStatement pstmt = conn.prepareStatement(
-                    """
-                            create table if not exists LifeGuardUsers (
-                                username text not null,
-                                deviceID bigint not null,
-                                isHome boolean not null,
-                                poolIsSupervised boolean not null
-                            )
-                            """
-            );
-            pstmt.execute();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
+//    private void tryCreateUsersTable() {
+//        try (Connection conn = this.databaseConnector.getConnection()) {
+//            PreparedStatement pstmt = conn.prepareStatement(
+//                    """
+//                            create table if not exists %s (
+//                                username text not null,
+//                                deviceid bigint not null,
+//                                ishome boolean not null,
+//                                poolissupervised boolean not null
+//                            )
+//                            """.formatted(databaseName)
+//            );
+//            pstmt.execute();
+//        } catch (SQLException e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 }

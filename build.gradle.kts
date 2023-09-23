@@ -4,13 +4,19 @@ plugins {
 }
 
 group ="com.riponmakers.lifeguard"
-version ="0.0.7"
+version ="0.0.9"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    /*
+    * TEST CONTAINERS
+    * */
+    testImplementation("org.testcontainers:postgresql:1.18.3")
+    testImplementation("org.testcontainers:testcontainers:1.18.3")
+
     /*
     * HELIDON
     * */

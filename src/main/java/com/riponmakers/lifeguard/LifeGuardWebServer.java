@@ -4,16 +4,14 @@ package com.riponmakers.lifeguard;
 import com.riponmakers.lifeguard.UserDatabase.User;
 import com.riponmakers.lifeguard.UserDatabase.UserDatabaseConnector;
 import com.riponmakers.lifeguard.UserDatabase.UserService;
-import io.helidon.common.reactive.Multi;
 import io.helidon.config.Config;
 import io.helidon.openapi.OpenAPISupport;
 import io.helidon.webserver.Routing;
 import io.helidon.webserver.WebServer;
 import org.json.JSONObject;
 
-import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
+import java.sql.SQLException;
+import java.util.Arrays;
 
 
 public class LifeGuardWebServer {
@@ -32,7 +30,7 @@ public class LifeGuardWebServer {
                 "lifeguard",
                 "fc84*th4"
         );
-        final UserService userService = new UserService(databaseConnector);
+        final UserService userService = new UserService(databaseConnector, "lifeguarddb");
 
 
         final UserDatabaseConnector testDatabaseConnector = new UserDatabaseConnector(
@@ -40,7 +38,7 @@ public class LifeGuardWebServer {
                 "testlifeguard",
                 "y24iphio"
         );
-        final UserService testUserService = new UserService(testDatabaseConnector);
+        final UserService testUserService = new UserService(testDatabaseConnector, "testlifeguarddb");
 
         /*
         * Extract the exposed parameters in the url to
@@ -76,70 +74,65 @@ public class LifeGuardWebServer {
         openAPIServer.start();
     }
 
-    private static Routing  routing(UserService userService) {
+    private static Routing routing(UserService userService) {
         JSONObject jsonObject = new JSONObject();
 
         Routing routing = Routing.builder()
-                // This post does not need a device id because that'll happen after
-                // the account is created
-                .get("/", (req, res) -> {
-                    res.send("This is the default pathing");
-                })
-                .post("/user", (req, res) -> {
-                    req.content().as(String.class)
-                            .thenAccept(body -> {
-                                JSONObject jsonBody = new JSONObject(body);
+            // This post does not need a device id because that'll happen after
+            // the account is created
+            .get("/", (req, res) -> {
+                res.send("This is the default pathing");
+            })
+            .post("/user", (req, res) -> {
+                req.content().as(String.class).thenAccept(body -> {
+                    JSONObject jsonBody = new JSONObject(body);
 
-                                if(jsonBody.getString("userToken") == null || jsonBody.getString("username") == null) {
-                                    String exp = jsonBody.getString("userToken") == null ? "userToken is not provided" : "username is not provided";
-                                    jsonObject.put("explanation", exp);
+                    if (jsonBody.getString("userToken") == null || jsonBody.getString("username") == null) {
+                        String exp = jsonBody.getString("userToken") == null ? "userToken is not provided" : "username is not provided";
+                        jsonObject.put("explanation", exp);
 
-                                    res.status(400);
-                                    res.send(jsonObject);
-                                }
+                        res.status(400);
+                        res.send(jsonObject);
+                    }
 
-                                String username = jsonBody.getString("username");
+                    String username = jsonBody.getString("username");
+
+                    //TODO 401 403, 405, 408
                     //The provided userToken is already being used, or the username
                     // is already being used
-                                if(userService.getUser(username) != null) {
-                                    jsonObject.put("explanation", "username is already being used");
 
-                                    res.status(403);
-                                    res.send(jsonObject);
-                                }
+                    try {
+                        if (userService.getUser(username) != null) {
+                            jsonObject.put("explanation", "username is already being used");
 
-                                // Send a response
-                                res.send("Received the body: " + jsonBody);
-                            })
-                            .exceptionally(throwable -> {
-                                // Handle any exceptions that occur during processing
-                                res.status(500).send("Error processing request body: " + throwable.getMessage() );
-                                return null;
-                            });
-                    /*
-//
-//                    String username = params.get("username").get(0);
-//                    //TODO 401 403, 405, 408
-//                    //The provided userToken is already being used, or the username
-//                    // is already being used
+                            res.status(403);
+                            res.send(jsonObject);
+                        }
+                    }
+                    catch(SQLException e) {
+                        //ignoring for now
+                    }
 
-//
-//                    //The provided userToken is valid, and username is not already used,
-//                    // user created.
-//                    userService.createUser(new User(
-//                            username,
-//                            -1,
-//                            true,
-//                            false
-//                    ));
-*/
-
-                })
-                .build();
+                    //The provided userToken is valid, and username is not already used,
+                    // user created.
+                    userService.createUser(new User(
+                            username,
+                            -1,
+                            true,
+                            false
+                    ));
+                    res.status(201);
+                    try {
+                        res.send(userService.getUser(username));
+                    }
+                    catch (SQLException e) {}
+                }).exceptionally(throwable -> {
+                    // Handle any exceptions that occur during processing
+                    res.status(500).send("Error processing request body: " + throwable.getMessage() + "\n" + Arrays.toString(throwable.getStackTrace()));
+                    return null;
+                });
+            })
+            .build();
         return routing;
-    }
-
-    private void postUser() {
-
     }
 }

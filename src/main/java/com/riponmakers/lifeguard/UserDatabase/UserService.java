@@ -1,5 +1,9 @@
 package com.riponmakers.lifeguard.UserDatabase;
 
+import com.riponmakers.lifeguard.JSONRecords.User;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -7,10 +11,12 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Singleton
 public class UserService {
     private final UserDatabaseConnector databaseConnector;
     private final String databaseName;
 
+    @Inject
     public UserService(UserDatabaseConnector dbc, String databaseName) {
         databaseConnector = dbc;
         this.databaseName = databaseName;
@@ -38,7 +44,7 @@ public class UserService {
 
     }
 
-    public User getUser(String username) throws SQLException {
+    public User getUser(String username) throws RuntimeException {
         try (Connection conn = this.databaseConnector.getConnection()) {
             PreparedStatement pstmt = conn.prepareStatement("select username,deviceid,ishome,poolissupervised from " + databaseName + " where username = ?");
             pstmt.setString(1, username);
@@ -59,8 +65,7 @@ public class UserService {
 // Close the ResultSet and statement when done
             rs.close();
             pstmt.close();
-
-            return null;
+            throw new RuntimeException("No user crated, database read failure");
         } catch (SQLException e) {
             throw new RuntimeException("getuser error\n" + e);
         }
@@ -83,6 +88,7 @@ public class UserService {
         }
         return Users;
     }
+    /*
 //    private void tryCreateUsersTable() {
 //        try (Connection conn = this.databaseConnector.getConnection()) {
 //            PreparedStatement pstmt = conn.prepareStatement(
@@ -100,4 +106,5 @@ public class UserService {
 //            throw new RuntimeException(e);
 //        }
 //    }
+     */
 }

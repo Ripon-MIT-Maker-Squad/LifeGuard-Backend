@@ -1,8 +1,7 @@
 package com.riponmakers.lifeguard.UserDatabase;
 
 import com.riponmakers.lifeguard.JSONRecords.User;
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
+
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,12 +10,10 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-@Singleton
 public class UserService {
     private final UserDatabaseConnector databaseConnector;
     private final String databaseName;
 
-    @Inject
     public UserService(UserDatabaseConnector dbc, String databaseName) {
         databaseConnector = dbc;
         this.databaseName = databaseName;
@@ -65,7 +62,7 @@ public class UserService {
 // Close the ResultSet and statement when done
             rs.close();
             pstmt.close();
-            throw new RuntimeException("No user crated, database read failure");
+            return null;
         } catch (SQLException e) {
             throw new RuntimeException("getuser error\n" + e);
         }

@@ -18,13 +18,18 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:1.18.3")
 
     /*
-    * HELIDON MP
+    * HELIDON SE
     * */
-    implementation("io.helidon.microprofile.bundles:helidon-microprofile:3.2.2")
-//    implementation("io.helidon.microprofile.metrics:helidon-microprofile-metrics:2.3.2")
-//    implementation("io.helidon.microprofile.openapi:helidon-microprofile-openapi:2.3.2")
-//    implementation("org.eclipse.microprofile.openapi:microprofile-openapi-spec:2.1")
-//    testImplementation("io.helidon.microprofile.cdi:helidon-microprofile-cdi:2.3.2")
+    implementation("io.helidon.openapi:helidon-openapi:2.6.0")
+    implementation("io.helidon.integrations.openapi-ui:helidon-integrations-openapi-ui:3.2.2")
+    implementation("io.helidon:helidon-dependencies:3.2.2")
+    implementation("io.helidon.webserver:helidon-webserver:3.2.2")
+    implementation("io.helidon.media.jsonp:helidon-media-jsonp-common:2.0.0-M3")
+    implementation("io.helidon.config:helidon-config-yaml:3.2.2")
+    implementation("io.helidon.health:helidon-health:3.2.2")
+    implementation("io.helidon.health:helidon-health-checks:3.2.2")
+    implementation("io.helidon.metrics:helidon-metrics:3.2.2")
+    testImplementation("io.helidon.webclient:helidon-webclient:3.2.2")
 
     /*
     * POSTGRESQL

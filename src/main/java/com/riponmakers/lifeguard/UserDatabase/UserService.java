@@ -13,10 +13,12 @@ import java.util.List;
 public class UserService {
     private final UserDatabaseConnector databaseConnector;
     private final String databaseName;
+    private final String tableName;
 
-    public UserService(UserDatabaseConnector dbc, String databaseName) {
+    public UserService(UserDatabaseConnector dbc, String databaseName, String tableName) {
         databaseConnector = dbc;
         this.databaseName = databaseName;
+        this.tableName = tableName;
 
 //        tryCreateUsersTable();
     }
@@ -24,7 +26,7 @@ public class UserService {
     public void createUser(User user) {
         try (Connection conn = this.databaseConnector.getConnection()) {
             PreparedStatement pstmt = conn.prepareStatement(
-                        "insert into " + databaseName + "(username,deviceid,ishome,poolissupervised) values(?,?,?,?)"
+                        "insert into " + tableName + "(username,deviceid,ishome,poolissupervised) values(?,?,?,?)"
             );
 
             pstmt.setString(1, user.username());
@@ -37,13 +39,21 @@ public class UserService {
         }
     }
 
-    public void removeUser() {
+    public void removeUser(User user)    {
+        try(Connection conn = this.databaseConnector.getConnection()) {
+            PreparedStatement pstmt = conn.prepareStatement(
+                "delete from " + tableName + " where username = (?) "
+            );
 
+            pstmt.setString(1, user.username());
+        } catch (SQLException e) {
+            throw new RuntimeException("removeUser error\n" + e);
+        }
     }
 
     public User getUser(String username) throws RuntimeException {
         try (Connection conn = this.databaseConnector.getConnection()) {
-            PreparedStatement pstmt = conn.prepareStatement("select username,deviceid,ishome,poolissupervised from " + databaseName + " where username = ?");
+            PreparedStatement pstmt = conn.prepareStatement("select username,deviceid,ishome,poolissupervised from " + tableName + " where username = ?");
             pstmt.setString(1, username);
             ResultSet rs = pstmt.executeQuery();
 
@@ -71,7 +81,7 @@ public class UserService {
         List<User> Users = new ArrayList<>();
 
         try (Connection conn = this.databaseConnector.getConnection()) {
-            PreparedStatement pstmt = conn.prepareStatement("select username,deviceid,ishome,poolissupervised from  " + databaseName);
+            PreparedStatement pstmt = conn.prepareStatement("select username,deviceid,ishome,poolissupervised from  " + tableName);
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
                 String username = rs.getString("username");

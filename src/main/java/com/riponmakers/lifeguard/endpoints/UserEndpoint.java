@@ -25,8 +25,8 @@ public class UserEndpoint {
         this.logger = logger;
     }
 
-    public void post(ServerRequest req, ServerResponse res) {
-        req.content().as(String.class).thenAccept(body -> {
+    public void post(ServerRequest request, ServerResponse response) {
+        request.content().as(String.class).thenAccept(body -> {
             try {
                 final var userCreation = mapper.readValue(body, UserCreationPayload.class);
                 //TODO 401 403, 405, 408
@@ -35,8 +35,8 @@ public class UserEndpoint {
                 if (userService.getUser(userCreation.username()) != null) {
                     final var responseMessage = mapper.writeValueAsString(new HttpError("username is already being used"));
 
-                    res.status(403);
-                    res.send(responseMessage);
+                    response.status(403);
+                    response.send(responseMessage);
                 }
 
 
@@ -50,8 +50,8 @@ public class UserEndpoint {
                 );
                 userService.createUser(user);
                 logger.logLine("user created");
-                logger.logLine(res != null ? "is not null" : "is null");
-                res.status(201);
+                logger.logLine(response != null ? "is not null" : "is null");
+                response.status(201);
 
                 /*
                  * {
@@ -62,18 +62,18 @@ public class UserEndpoint {
                  * }
                  * */
                 final var responseMessage = mapper.writeValueAsString(user);
-                res.send(responseMessage);
+                response.send(responseMessage);
                 logger.logLine("new user data sent");
 
             } catch (JsonProcessingException e) {
-                res.status(400);
-                res.send("{ \"exp\": \"Unable to parse. \" }");
+                response.status(400);
+                response.send("{ \"exp\": \"Unable to parse. \" }");
                 logger.logLine("status code 400 returned");
                 throw new RuntimeException(e);
             }
         }).exceptionally(throwable -> {
             // Handle any exceptions that occur during processing
-            res.status(500).send("Error processing request body: " + throwable.getMessage() + "\n" + Arrays.toString(throwable.getStackTrace()));
+            response.status(500).send("Error processing request body: " + throwable.getMessage() + "\n" + Arrays.toString(throwable.getStackTrace()));
             logger.logLine("error code 500 returned");
             return null;
         });
@@ -86,7 +86,7 @@ public class UserEndpoint {
                 ? request.queryParams().first("username").get()
                 : "null";
 
-        // TODO: 400, 403, 405
+        // TODO: 401, 403, 405
         if(username.equals("null") || userService.getUser(username) == null) {
             response.status(404);
             response.send();
@@ -101,5 +101,32 @@ public class UserEndpoint {
             response.status(500).send("Error processing request body: " + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
             throw new RuntimeException(e);
         }
+    }
+
+    public void delete(ServerRequest request, ServerResponse response) {
+        // Might need some sort of way to get second confirmation of delete request
+        var username = request.queryParams().first("username").isPresent()
+                ? request.queryParams().first("username").get()
+                : "null";
+
+        if(username.equals("null") || userService.getUser(username) == null) {
+            response.status(404);
+            response.send();
+        }
+
+        try {
+            final var user = userService.getUser(username);
+            final var responseMessage = mapper.writeValueAsString(user);
+
+            userService.removeUser(user);
+
+            response.status(200);
+            response.send(responseMessage);
+            logger.logLine("removed user");
+        } catch (JsonProcessingException | RuntimeException e) {
+            response.status(500).send("Error processing request body: " + e.getMessage() + "\n" + Arrays.toString(e.getStackTrace()));
+            throw new RuntimeException(e);
+        }
+
     }
 }

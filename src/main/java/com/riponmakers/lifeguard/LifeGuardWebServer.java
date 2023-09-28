@@ -37,7 +37,7 @@ public class LifeGuardWebServer {
                 "lifeguard",
                 "fc84*th4"
         );
-        final UserService userService = new UserService(databaseConnector, "lifeguarddb");
+        final UserService userService = new UserService(databaseConnector, "lifeguarddb", "lifeguardusers");
 
 
         final UserDatabaseConnector testDatabaseConnector = new UserDatabaseConnector(
@@ -45,7 +45,7 @@ public class LifeGuardWebServer {
                 "testlifeguard",
                 "y24iphio"
         );
-        final UserService testUserService = new UserService(testDatabaseConnector, "testlifeguarddb");
+        final UserService testUserService = new UserService(testDatabaseConnector, "testlifeguarddb", "testlifeguardusers");
 
         logger.logLine("databases connected");
 
@@ -97,6 +97,7 @@ public class LifeGuardWebServer {
                 // the account is created
                 .get("/user", userEndpoint::get)
                 .post("/user", userEndpoint::post)
+                .delete("/user", userEndpoint::delete)
                 .build();
         return routing;
     }

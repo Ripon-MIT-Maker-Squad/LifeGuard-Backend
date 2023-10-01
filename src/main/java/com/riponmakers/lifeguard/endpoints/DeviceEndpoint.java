@@ -48,7 +48,7 @@ public class DeviceEndpoint {
             }
 
 
-            
+
         }).exceptionally(throwable -> {
             // Handle any exceptions that occur during processing
             response.status(500).send("Error processing request body: " + throwable.getMessage() + "\n" + Arrays.toString(throwable.getStackTrace()));

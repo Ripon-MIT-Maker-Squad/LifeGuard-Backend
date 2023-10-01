@@ -11,11 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class UserService {
-    private final UserDatabaseConnector databaseConnector;
+    private final DatabaseConnector databaseConnector;
     private final String databaseName;
     private final String tableName;
 
-    public UserService(UserDatabaseConnector dbc, String databaseName, String tableName) {
+    public UserService(DatabaseConnector dbc, String databaseName, String tableName) {
         databaseConnector = dbc;
         this.databaseName = databaseName;
         this.tableName = tableName;

@@ -88,7 +88,7 @@ public class LifeGuardWebServer {
 
     private static Routing routing(UserService userService, DeviceService deviceService, Logger logger) {
         var userEndpoint = new UserEndpoint(userService, mapper, logger);
-        var deviceEndpoint = new DeviceEndpoint(deviceService, mapper, logger);
+        var deviceEndpoint = new DeviceEndpoint(deviceService, userService, mapper, logger);
 
         Routing routing = Routing.builder()
                 // This post does not need a device id because that'll happen after

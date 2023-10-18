@@ -3,6 +3,7 @@ package com.riponmakers.lifeguard.endpoints;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.riponmakers.lifeguard.Debugging.Logger;
+import com.riponmakers.lifeguard.JSONRecords.Device;
 import com.riponmakers.lifeguard.JSONRecords.HttpError;
 import com.riponmakers.lifeguard.JSONRecords.User;
 import com.riponmakers.lifeguard.JSONRecords.UserCreationPayload;
@@ -45,6 +46,15 @@ public class DeviceEndpoint {
             if(username.equals("null") || userService.getUser(username) == null) {
                 response.status(404);
                 response.send();
+            }
+
+            try {
+                deviceService.onboardDevice(new Device(Long.parseLong(deviceID), username));
+
+                
+            } catch (Exception e) {
+                response.status(500);
+                response.status();
             }
 
 

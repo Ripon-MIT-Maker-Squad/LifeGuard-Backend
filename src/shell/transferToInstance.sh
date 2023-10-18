@@ -1,3 +1,5 @@
+#read -s  "Enter SSH password for LifeGuard Servers: " pass
+
 ssh -i /Users/lukebair/code/LifeGuard-Backend/ssh-key-k3s-server.key ubuntu@129.146.23.77<<EOF
 sudo systemctl stop lifeGuard
 EOF

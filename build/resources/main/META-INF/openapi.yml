@@ -166,6 +166,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ambiguousErrorSchema"
+  /device:
     post:
       summary: Add a device to a user
       parameters:

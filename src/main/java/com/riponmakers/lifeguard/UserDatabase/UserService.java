@@ -39,13 +39,18 @@ public class UserService {
         }
     }
 
-    public void removeUser(User user)    {
+    public boolean removeUser(User user)    {
         try(Connection conn = this.databaseConnector.getConnection()) {
             PreparedStatement pstmt = conn.prepareStatement(
-                "delete from " + tableName + " where username = (?) "
+                "delete from " + tableName + " where username = ?"
             );
 
             pstmt.setString(1, user.username());
+            int rowsDeleted = pstmt.executeUpdate();
+
+            // this should return true if it successfully deletes,
+            // although it might not throw an error, I'm not sure
+            return rowsDeleted > 0;
         } catch (SQLException e) {
             throw new RuntimeException("removeUser error\n" + e);
         }
@@ -69,7 +74,7 @@ public class UserService {
                         poolIsSupervised);
             }
 
-// Close the ResultSet and statement when done
+            // Close the ResultSet and statement when done
             rs.close();
             pstmt.close();
             return null;

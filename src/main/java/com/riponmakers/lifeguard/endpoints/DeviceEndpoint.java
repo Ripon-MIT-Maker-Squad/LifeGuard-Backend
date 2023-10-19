@@ -3,10 +3,7 @@ package com.riponmakers.lifeguard.endpoints;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.riponmakers.lifeguard.Debugging.Logger;
-import com.riponmakers.lifeguard.JSONRecords.Device;
-import com.riponmakers.lifeguard.JSONRecords.HttpError;
-import com.riponmakers.lifeguard.JSONRecords.User;
-import com.riponmakers.lifeguard.JSONRecords.UserCreationPayload;
+import com.riponmakers.lifeguard.JSONRecords.*;
 import com.riponmakers.lifeguard.UserDatabase.DeviceService;
 import com.riponmakers.lifeguard.UserDatabase.UserService;
 import io.helidon.webserver.ServerRequest;
@@ -30,35 +27,42 @@ public class DeviceEndpoint {
 
     public void post(ServerRequest request, ServerResponse response) {
         request.content().as(String.class).thenAccept(body -> {
-
-            //get the query parameters
-            var deviceID = request.queryParams().first("deviceid").isPresent()
-                    ? request.queryParams().first("deviceid").get()
-                    : "null";
-            if(deviceID.equals("null") || deviceService.getDevice(deviceID) != null) {
-                response.status(404);
-                response.send();
-            }
-
-            var username = request.queryParams().first("username").isPresent()
-                    ? request.queryParams().first("username").get()
-                    : "null";
-            if(username.equals("null") || userService.getUser(username) == null) {
-                response.status(404);
-                response.send();
-            }
-
+            //read json body for variables
             try {
-                deviceService.onboardDevice(new Device(Long.parseLong(deviceID), username));
+                final var deviceCreation = mapper.readValue(body, DeviceCreationPayload.class);
+                //TODO: 201, 400, 401, 404, 405, 408
+                // At some point the username of device creation may not be necessary,
+                // If the
+                if(userService.getUser(deviceCreation.username()) == null) {
+                    final var responseMessage = mapper.writeValueAsString(new HttpError("username is not recognized"));
 
-                
-            } catch (Exception e) {
-                response.status(500);
-                response.status();
+                    //404: Username not found
+                    response.status(404);
+                    response.send(responseMessage);
+                }
+
+                if(deviceService.getDevice(deviceCreation.deviceID()) != null) {
+                    final var responseMessage = mapper.writeValueAsString(new HttpError("Device ID is already registered"));
+
+                    //403: DeviceID in use
+                    response.status(403);
+                    response.send(responseMessage);
+                }
+
+                final var device = new Device(
+                    Long.parseLong(deviceCreation.deviceID()),
+                    deviceCreation.username()
+                );
+                deviceService.onboardDevice(device);
+                logger.logLine("device created, and onboarded");
+                response.status(201);
+
+                final var responseMessage = mapper.writeValueAsString(device);
+                response.send(responseMessage);
+
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
             }
-
-
-
         }).exceptionally(throwable -> {
             // Handle any exceptions that occur during processing
             response.status(500).send("Error processing request body: " + throwable.getMessage() + "\n" + Arrays.toString(throwable.getStackTrace()));

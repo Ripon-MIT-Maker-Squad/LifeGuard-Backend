@@ -74,11 +74,12 @@ public class DeviceEndpoint {
     public void get(ServerRequest request, ServerResponse response) {
         // Get parameters, then check for possible errors before returning 200
 
-        var deviceID = request.queryParams().first("deviceid").isPresent()
-                ? request.queryParams().first("deviceid").get()
+        var deviceID = request.queryParams().first("deviceID").isPresent()
+                ? request.queryParams().first("deviceID").get()
                 : "null";
 
         // TODO: 401, 403, 405
+        logger.logLine(deviceID);
         if(deviceID.equals("null") || deviceService.getDevice(deviceID) == null) {
             response.status(404);
             response.send();

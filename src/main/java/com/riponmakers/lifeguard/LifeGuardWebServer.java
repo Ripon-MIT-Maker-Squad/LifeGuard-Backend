@@ -33,7 +33,7 @@ public class LifeGuardWebServer {
                 "lifeguard",
                 "fc84*th4"
         );
-        final UserService userService = new UserService(databaseConnector, "lifeguarddb", "lifeguardusers");
+        final UserService userService = new UserService(databaseConnector, "lifeguarddb", "lifeguardusers", "devices");
         final DeviceService deviceService = new DeviceService(databaseConnector, "lifeguarddb", "devices");
 
         final DatabaseConnector testDatabaseConnector = new DatabaseConnector(
@@ -41,7 +41,7 @@ public class LifeGuardWebServer {
                 "testlifeguard",
                 "y24iphio"
         );
-        final UserService testUserService = new UserService(testDatabaseConnector, "testlifeguarddb", "testlifeguardusers");
+        final UserService testUserService = new UserService(testDatabaseConnector, "testlifeguarddb", "testlifeguardusers", "testdevices");
         final DeviceService testDeviceService = new DeviceService(testDatabaseConnector, "testlifeguarddb", "testDevices");
         logger.logLine("databases connected");
 

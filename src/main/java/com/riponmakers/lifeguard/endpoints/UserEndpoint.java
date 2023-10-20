@@ -118,6 +118,8 @@ public class UserEndpoint {
             final var user = userService.getUser(username);
             final var responseMessage = mapper.writeValueAsString(user);
 
+            logger.logLine(user.toString());
+
             userService.removeUser(user);
 
             response.status(200);

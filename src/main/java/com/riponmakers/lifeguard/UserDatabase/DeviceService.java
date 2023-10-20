@@ -29,8 +29,8 @@ public class DeviceService {
                     "insert into " + tableName + "(username,deviceid) values(?,?)"
             );
 
-            pstmt.setLong(1, device.deviceID());
-            pstmt.setString(2, device.username());
+            pstmt.setString(1, device.username());
+            pstmt.setLong(2, device.deviceID());
 
             pstmt.execute();
 
@@ -47,17 +47,17 @@ public class DeviceService {
 
     public void removeDevice(Device device) { /* no calls to this */}
 
-    public Device getDevice(String username) throws RuntimeException {
+    public Device getDevice(String deviceID) throws RuntimeException {
         try (Connection conn = this.databaseConnector.getConnection()) {
-            PreparedStatement pstmt = conn.prepareStatement("select username,deviceid from " + tableName + " where username = ?");
-            pstmt.setString(1, username);
+            PreparedStatement pstmt = conn.prepareStatement("select username from " + tableName + " where deviceID = ?");
+            pstmt.setLong(1, Long.parseLong(deviceID));
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
-                long deviceID = rs.getLong("deviceid");
+                String username = rs.getString("username");
 
                 return new Device(
-                        deviceID,
+                        Long.parseLong(deviceID),
                         username);
             }
 

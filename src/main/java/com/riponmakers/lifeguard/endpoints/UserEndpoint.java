@@ -44,7 +44,6 @@ public class UserEndpoint {
                 // user created.
                 final var user = new User(
                         userCreation.username(),
-                        -1,
                         true,
                         false
                 );
@@ -56,7 +55,6 @@ public class UserEndpoint {
                 /*
                  * {
                  *   "username": "string",
-                 *   "deviceID": 0,
                  *   "isHome": true,
                  *   "poolIsSupervised": true
                  * }

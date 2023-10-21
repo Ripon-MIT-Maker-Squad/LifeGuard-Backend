@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record User(
         @JsonProperty String username,
-        @JsonProperty long deviceID,
         @JsonProperty boolean isHome,
         @JsonProperty boolean poolIsSupervised) {
 }

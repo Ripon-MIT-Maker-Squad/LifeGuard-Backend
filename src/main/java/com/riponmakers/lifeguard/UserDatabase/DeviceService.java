@@ -13,33 +13,26 @@ import java.util.List;
 public class DeviceService {
     private final DatabaseConnector databaseConnector;
     private final String databaseName;
-    private final String tableName;
+    private final String deviceTableName, userTableName;
 
-    public DeviceService(DatabaseConnector dbc, String databaseName, String tableName) {
+    public DeviceService(DatabaseConnector dbc, String databaseName, String deviceTableName, String userDatabaseName) {
         databaseConnector = dbc;
         this.databaseName = databaseName;
-        this.tableName = tableName;
-
+        this.deviceTableName = deviceTableName;
+        this.userTableName = userDatabaseName;
 //        tryCreateUsersTable();
     }
 
     public void onboardDevice(Device device) {
         try (Connection conn = this.databaseConnector.getConnection()) {
             PreparedStatement pstmt = conn.prepareStatement(
-                    "insert into " + tableName + "(username,deviceid) values(?,?)"
+                    "insert into " + deviceTableName + "(username,deviceid) values(?,?)"
             );
 
             pstmt.setString(1, device.username());
             pstmt.setLong(2, device.deviceID());
 
             pstmt.execute();
-
-            PreparedStatement pstmt2 = conn.prepareStatement(
-                    "update " + tableName + " set deviceid = ? where username = ?"
-            );
-
-            pstmt2.setLong(1, device.deviceID());
-            pstmt2.setString(2, device.username());
         } catch (SQLException e) {
             throw new RuntimeException("onboarding device error\n" + e);
         }
@@ -49,7 +42,7 @@ public class DeviceService {
 
     public Device getDevice(String deviceID) throws RuntimeException {
         try (Connection conn = this.databaseConnector.getConnection()) {
-            PreparedStatement pstmt = conn.prepareStatement("select username from " + tableName + " where deviceID = ?");
+            PreparedStatement pstmt = conn.prepareStatement("select username from " + deviceTableName + " where deviceID = ?");
             pstmt.setLong(1, Long.parseLong(deviceID));
             ResultSet rs = pstmt.executeQuery();
 
@@ -71,16 +64,14 @@ public class DeviceService {
     }
     public List<User> getAllUsers() {
         List<User> Users = new ArrayList<>();
-
         try (Connection conn = this.databaseConnector.getConnection()) {
-            PreparedStatement pstmt = conn.prepareStatement("select username,deviceid,ishome,poolissupervised from  " + tableName);
+            PreparedStatement pstmt = conn.prepareStatement("select username,ishome,poolissupervised from  " + userTableName);
             ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
                 String username = rs.getString("username");
-                long deviceID = rs.getLong("deviceid");
                 boolean isHome = rs.getBoolean("ishome");
                 boolean poolIsSupervised = rs.getBoolean("poolissupervised");
-                Users.add(new User(username, deviceID, isHome, poolIsSupervised));
+                Users.add(new User(username, isHome, poolIsSupervised));
             }
         } catch (SQLException e) {
             throw new RuntimeException(e);

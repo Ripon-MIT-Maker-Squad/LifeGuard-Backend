@@ -13,13 +13,12 @@ import java.util.List;
 public class UserService {
     private final DatabaseConnector databaseConnector;
     private final String databaseName;
-    private final String tableName, deviceTableName;
+    private final String tableName;
 
-    public UserService(DatabaseConnector dbc, String databaseName, String tableName, String deviceTableName) {
+    public UserService(DatabaseConnector dbc, String databaseName, String tableName) {
         databaseConnector = dbc;
         this.databaseName = databaseName;
         this.tableName = tableName;
-        this.deviceTableName = deviceTableName;
 //        tryCreateUsersTable();
     }
 
@@ -43,18 +42,8 @@ public class UserService {
      *         1 if user deleted but no device deleted
      *         2 if user and device(s) deleted
     * */
-    public int removeUser(User user)    {
+    public void removeUser(User user, DeviceService deviceService, NeighborService neighborService)    {
         try(Connection conn = this.databaseConnector.getConnection()) {
-
-            // You need to delete the devices first, or else the user doesn't exist for
-            // it to be deleted?
-            PreparedStatement pstmt = conn.prepareStatement(
-                    "delete from " + deviceTableName + " where username = ?"
-            );
-
-            pstmt.setString(1, user.username());
-            int deviceRowsDeleted = pstmt.executeUpdate();
-
             PreparedStatement pstmt2 = conn.prepareStatement(
                     "delete from " + tableName + " where username = ?"
             );
@@ -62,9 +51,11 @@ public class UserService {
             pstmt2.setString(1, user.username());
             int rowsDeleted = pstmt2.executeUpdate();
 
+            deviceService.removeDevices(user.username());
+            neighborService.removeNeighbors(user.username());
+
             // this should return true if it successfully deletes,
             // although it might not throw an error, I'm not sure
-            return rowsDeleted > 0 ? (deviceRowsDeleted > 0 ? 2 : 1) : 0;
         } catch (SQLException e) {
             throw new RuntimeException("removeUser error\n" + e);
         }

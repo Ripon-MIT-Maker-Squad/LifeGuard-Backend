@@ -5,8 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.riponmakers.lifeguard.Debugging.Logger;
 import com.riponmakers.lifeguard.UserDatabase.DatabaseConnector;
 import com.riponmakers.lifeguard.UserDatabase.DeviceService;
+import com.riponmakers.lifeguard.UserDatabase.NeighborService;
 import com.riponmakers.lifeguard.UserDatabase.UserService;
 import com.riponmakers.lifeguard.endpoints.DeviceEndpoint;
+import com.riponmakers.lifeguard.endpoints.NeighborEndpoint;
 import com.riponmakers.lifeguard.endpoints.UserEndpoint;
 import io.helidon.config.Config;
 import io.helidon.openapi.OpenAPISupport;
@@ -33,15 +35,17 @@ public class LifeGuardWebServer {
                 "lifeguard",
                 "fc84*th4"
         );
-        final UserService userService = new UserService(databaseConnector, "lifeguarddb", "lifeguardusers", "devices");
         final DeviceService deviceService = new DeviceService(databaseConnector, "lifeguarddb", "devices", "lifeguardusers");
+        final NeighborService neighborService = new NeighborService(databaseConnector, "lifeguarddb", "neighbors");
+        final UserService userService = new UserService(databaseConnector, "lifeguarddb", "lifeguardusers");
 
         final DatabaseConnector testDatabaseConnector = new DatabaseConnector(
                 "jdbc:postgresql://localhost:5432/testlifeguarddb",
                 "testlifeguard",
                 "y24iphio"
         );
-        final UserService testUserService = new UserService(testDatabaseConnector, "testlifeguarddb", "testlifeguardusers", "testdevices");
+        final UserService testUserService = new UserService(testDatabaseConnector, "testlifeguarddb", "testlifeguardusers");
+        final NeighborService testNeighborService = new NeighborService(databaseConnector, "testlifeguarddb", "testneighbors");
         final DeviceService testDeviceService = new DeviceService(testDatabaseConnector, "testlifeguarddb", "testDevices", "testlifeguardusers");
         logger.logLine("databases connected");
 
@@ -50,7 +54,7 @@ public class LifeGuardWebServer {
          * validate and perform operations,
          * Comments provided directly from the LifeGuard API docs
          */
-        var serverRouting = routing(userService, deviceService, logger);
+        var serverRouting = routing(userService, deviceService, neighborService, logger);
         assert serverRouting != null;
         logger.logLine("production server routing created");
 
@@ -59,7 +63,7 @@ public class LifeGuardWebServer {
         logger.logLine("production server started");
 
 
-        var testServerRouting = routing(testUserService, testDeviceService, logger);
+        var testServerRouting = routing(testUserService, testDeviceService, testNeighborService, logger);
         assert testServerRouting != null;
         logger.logLine("test server routing created");
 
@@ -86,10 +90,10 @@ public class LifeGuardWebServer {
 
     }
 
-    private static Routing routing(UserService userService, DeviceService deviceService, Logger logger) {
-        var userEndpoint = new UserEndpoint(userService, mapper, logger);
+    private static Routing routing(UserService userService, DeviceService deviceService, NeighborService neighborService, Logger logger) {
+        var userEndpoint = new UserEndpoint(userService, deviceService, neighborService, mapper, logger);
         var deviceEndpoint = new DeviceEndpoint(deviceService, userService, mapper, logger);
-
+        var neighborEndpoint = new NeighborEndpoint(neighborService, userService, mapper, logger);
         Routing routing = Routing.builder()
                 // This post does not need a device id because that'll happen after
                 // the account is created
@@ -99,6 +103,9 @@ public class LifeGuardWebServer {
                 .get("/device", deviceEndpoint::get)
                 .post("/device", deviceEndpoint::post)
                 .delete("/device", deviceEndpoint::delete)
+                .get("/neighbor", neighborEndpoint::get)
+                .get("/neighbor", neighborEndpoint::post)
+                .get("/neighbor", neighborEndpoint::delete)
                 .build();
         return routing;
     }

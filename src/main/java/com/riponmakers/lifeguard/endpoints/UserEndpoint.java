@@ -6,6 +6,8 @@ import com.riponmakers.lifeguard.Debugging.Logger;
 import com.riponmakers.lifeguard.JSONRecords.HttpError;
 import com.riponmakers.lifeguard.JSONRecords.User;
 import com.riponmakers.lifeguard.JSONRecords.UserCreationPayload;
+import com.riponmakers.lifeguard.UserDatabase.DeviceService;
+import com.riponmakers.lifeguard.UserDatabase.NeighborService;
 import com.riponmakers.lifeguard.UserDatabase.UserService;
 import io.helidon.webserver.ServerRequest;
 import io.helidon.webserver.ServerResponse;
@@ -16,11 +18,15 @@ import java.util.Map;
 
 public class UserEndpoint {
     private final UserService userService;
+    private final DeviceService deviceService;
+    private final NeighborService neighborService;
     private final ObjectMapper mapper;
     private final Logger logger;
 
-    public UserEndpoint(UserService svc, ObjectMapper mapper, Logger logger) {
+    public UserEndpoint(UserService svc, DeviceService dsvc, NeighborService nsvc, ObjectMapper mapper, Logger logger) {
         this.userService = svc;
+        this.deviceService = dsvc;
+        this.neighborService = nsvc;
         this.mapper = mapper;
         this.logger = logger;
     }
@@ -79,12 +85,14 @@ public class UserEndpoint {
 
     public void get(ServerRequest request, ServerResponse response) {
         // Get parameters, then check for possible errors before returning 200
-
         var username = request.queryParams().first("username").isPresent()
                 ? request.queryParams().first("username").get()
                 : "null";
 
-        // TODO: 401, 403, 405
+        //TODO 403: usertoken invalid
+
+        //TODO  401: usertoken valid, username not connected to token
+
         if(username.equals("null") || userService.getUser(username) == null) {
             response.status(404);
             response.send();
@@ -118,7 +126,7 @@ public class UserEndpoint {
 
             logger.logLine(user.toString());
 
-            userService.removeUser(user);
+            userService.removeUser(user, deviceService, neighborService);
 
             response.status(200);
             response.send(responseMessage);

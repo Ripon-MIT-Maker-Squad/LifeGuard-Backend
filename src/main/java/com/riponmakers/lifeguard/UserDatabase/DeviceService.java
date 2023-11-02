@@ -38,7 +38,17 @@ public class DeviceService {
         }
     }
 
-    public void removeDevice(Device device) { /* no calls to this */}
+    public void removeDevices(String username) {
+        try(Connection conn = this.databaseConnector.getConnection()) {
+            PreparedStatement pstmt2 = conn.prepareStatement(
+                    "delete from " + deviceTableName + " where username = ?"
+            );
+
+            pstmt2.setString(1, username);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public Device getDevice(String deviceID) throws RuntimeException {
         try (Connection conn = this.databaseConnector.getConnection()) {

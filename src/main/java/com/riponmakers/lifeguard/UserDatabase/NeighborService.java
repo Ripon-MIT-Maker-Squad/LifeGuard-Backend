@@ -60,7 +60,18 @@ public class NeighborService {
         }
     }
 
+    public void removeNeighbor(String username, String phoneNumber) {
+        try(Connection conn = this.databaseConnector.getConnection()) {
+            PreparedStatement preparedStatement = conn.prepareStatement(
+              "delete from " + tableName + " where id = ?"
+            );
 
+            preparedStatement.setString(1, username + phoneNumber);
+            preparedStatement.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public void removeNeighbors(String username) {
         try(Connection conn = this.databaseConnector.getConnection()) {

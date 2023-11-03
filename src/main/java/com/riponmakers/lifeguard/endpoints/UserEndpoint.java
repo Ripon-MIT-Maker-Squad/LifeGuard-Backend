@@ -127,7 +127,7 @@ public class UserEndpoint {
             logger.logLine(user.toString());
 
             userService.removeUser(user, deviceService, neighborService);
-
+            neighborService.removeNeighbors(user.username());
             response.status(200);
             response.send(responseMessage);
             logger.logLine("removed user");

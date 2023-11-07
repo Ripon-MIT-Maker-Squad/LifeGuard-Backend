@@ -36,7 +36,7 @@ public class NeighborService {
 
     public ArrayList<Neighbor> getNeighborsByUsername(String username) {
         try (Connection conn = this.databaseConnector.getConnection()) {
-            PreparedStatement pstmt = conn.prepareStatement("select phonenumber from " + tableName + " where username = ?");
+            PreparedStatement pstmt = conn.prepareStatement("select id, phonenumber from " + tableName + " where username = ?");
             pstmt.setString(1, username);
             ResultSet rs = pstmt.executeQuery();
             ArrayList<Neighbor> returnThis = new ArrayList<>();
@@ -54,19 +54,18 @@ public class NeighborService {
             // Close the ResultSet and statement when done
             rs.close();
             pstmt.close();
-            return null;
+            return returnThis;
         } catch (SQLException e) {
             throw new RuntimeException("getuser error\n" + e);
         }
     }
-
-    public void removeNeighbor(String username, String phoneNumber) {
+    public void removeNeighbor(String id) {
         try(Connection conn = this.databaseConnector.getConnection()) {
             PreparedStatement preparedStatement = conn.prepareStatement(
               "delete from " + tableName + " where id = ?"
             );
 
-            preparedStatement.setString(1, username + phoneNumber);
+            preparedStatement.setString(1, id);
             preparedStatement.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -89,6 +88,23 @@ public class NeighborService {
             // although it might not throw an error, I'm not sure
         } catch (SQLException e) {
             throw new RuntimeException("removeUser error\n" + e);
+        }
+    }
+
+    public Neighbor getNeighborByID(String id) {
+        try(Connection conn = this.databaseConnector.getConnection()) {
+            PreparedStatement pstmt = conn.prepareStatement(
+                    "select phonenumber, username from " + tableName + " where id = ?"
+            );
+
+            pstmt.setString(1, id);
+            ResultSet result = pstmt.executeQuery();
+            var neighbor = new Neighbor(id, result.getString("phonenumber"), result.getString("username"));
+            result.close();
+            pstmt.close();
+            return neighbor;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
     }
 }

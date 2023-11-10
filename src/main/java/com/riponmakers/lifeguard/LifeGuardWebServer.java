@@ -36,16 +36,16 @@ public class LifeGuardWebServer {
                 "fc84*th4"
         );
         final DeviceService deviceService = new DeviceService(databaseConnector, "lifeguarddb", "devices", "lifeguardusers");
-        final NeighborService neighborService = new NeighborService(databaseConnector, "lifeguarddb", "neighbors");
-        final UserService userService = new UserService(databaseConnector, "lifeguarddb", "lifeguardusers");
+        final NeighborService neighborService = new NeighborService(databaseConnector, "neighbors");
+        final UserService userService = new UserService(databaseConnector, "lifeguardusers");
 
         final DatabaseConnector testDatabaseConnector = new DatabaseConnector(
                 "jdbc:postgresql://localhost:5432/testlifeguarddb",
                 "testlifeguard",
                 "y24iphio"
         );
-        final UserService testUserService = new UserService(testDatabaseConnector, "testlifeguarddb", "testlifeguardusers");
-        final NeighborService testNeighborService = new NeighborService(databaseConnector, "testlifeguarddb", "testneighbors");
+        final UserService testUserService = new UserService(testDatabaseConnector, "testlifeguardusers");
+        final NeighborService testNeighborService = new NeighborService(testDatabaseConnector, "testneighbors");
         final DeviceService testDeviceService = new DeviceService(testDatabaseConnector, "testlifeguarddb", "testDevices", "testlifeguardusers");
         logger.logLine("databases connected");
 
@@ -104,8 +104,8 @@ public class LifeGuardWebServer {
                 .post("/device", deviceEndpoint::post)
                 .delete("/device", deviceEndpoint::delete)
                 .get("/neighbor", neighborEndpoint::get)
-                .get("/neighbor", neighborEndpoint::post)
-                .get("/neighbor", neighborEndpoint::delete)
+                .post("/neighbor", neighborEndpoint::post)
+                .delete("/neighbor", neighborEndpoint::delete)
                 .build();
         return routing;
     }

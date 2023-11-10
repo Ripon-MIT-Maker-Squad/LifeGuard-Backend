@@ -12,12 +12,10 @@ import java.util.List;
 
 public class UserService {
     private final DatabaseConnector databaseConnector;
-    private final String databaseName;
     private final String tableName;
 
-    public UserService(DatabaseConnector dbc, String databaseName, String tableName) {
+    public UserService(DatabaseConnector dbc, String tableName) {
         databaseConnector = dbc;
-        this.databaseName = databaseName;
         this.tableName = tableName;
 //        tryCreateUsersTable();
     }
@@ -25,7 +23,7 @@ public class UserService {
     public void createUser(User user) {
         try (Connection conn = this.databaseConnector.getConnection()) {
             PreparedStatement pstmt = conn.prepareStatement(
-                        "insert into " + tableName + "(username,ishome,poolissupervised) values(?,?,?)"
+                        "insert into \"" + tableName + "\"(username,ishome,poolissupervised) values(?,?,?)"
             );
 
             pstmt.setString(1, user.username());

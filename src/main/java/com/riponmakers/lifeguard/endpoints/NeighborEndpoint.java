@@ -55,6 +55,7 @@ public class NeighborEndpoint {
 
 
     public void post(ServerRequest request, ServerResponse response) {
+        logger.logLine("post neighrbor");
         request.content().as(String.class).thenAccept(body -> {
             try {
                 final var neighborCreation = mapper.readValue(body, NeighborCreationPayload.class);
@@ -65,31 +66,53 @@ public class NeighborEndpoint {
 
                     response.status(401);
                     response.send(responseMessage);
+                    return;
                 }
 
-                //really sketchy code, but idk how to get the id in a better way
-                //maybe something with a psql call
-                AtomicReference<String> id = new AtomicReference<>();
+                //check to see if an identical user already exists (equal phone numbers)
+                var neighbors = service.getNeighborsByUsername(neighborCreation.username());
 
-                service.getNeighborsByUsername(neighborCreation.username()).forEach((x) -> {
-                    if(x.phoneNumber().equals(neighborCreation.phoneNumber())) {
-                        id.set(x.id());
+                for (var neighbor : neighbors) {
+                    if(neighbor.phoneNumber().equals(neighborCreation.phoneNumber())) {
+                        final var responseMessage = mapper.writeValueAsString(
+                                new HttpError("phone number is already linked to user")
+                        );
+
+                        response.status(400);
+                        response.send(responseMessage);
+                        return;
                     }
-                });
+                }
+
+                try {
+                    service.createNeighbor(neighborCreation.phoneNumber(), neighborCreation.username());
+                }
+                catch (Exception e) {
+                    response.status(500);
+                    response.send(e.getMessage() + "\n\n" + Arrays.toString(e.getStackTrace()));
+                }
+
+                String id = "";
+                // TODO: make the post return the id so this garbage doesnt happen AND
+                // TODO: so the neighbors var can be final
+
+                neighbors = service.getNeighborsByUsername(neighborCreation.username());
+                logger.logLine("neighbors retrieved");
+
+                for(var x : neighbors){
+                    if(x.phoneNumber().equals(neighborCreation.phoneNumber())) {
+                        id =  x.id();
+                    }
+                }
+                logger.logLine("neighbor located");
 
                 final var neighbor = new Neighbor(
-                        id.get(),
+                        id,
                         neighborCreation.phoneNumber(),
                         neighborCreation.username()
                 );
 
-                try {
-                    service.createNeighbor(neighbor);
-                }
-                catch (Exception e) {
-                    response.status(500);
-                    response.send();
-                }
+                logger.logLine("neighbor created");
                 response.status(200);
                 final var responseMessage = mapper.writeValueAsString(neighbor);
 

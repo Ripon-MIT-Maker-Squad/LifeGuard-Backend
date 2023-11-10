@@ -1,5 +1,6 @@
 package com.riponmakers.lifeguard.UserDatabase;
 
+import com.riponmakers.lifeguard.Debugging.Logger;
 import com.riponmakers.lifeguard.JSONRecords.Neighbor;
 
 import java.sql.Connection;
@@ -10,25 +11,22 @@ import java.util.ArrayList;
 
 public class NeighborService {
     private final DatabaseConnector databaseConnector;
-    private final String databaseName;
     private final String tableName;
 
-    public NeighborService(DatabaseConnector dbc, String dbName, String tbName) {
+    public NeighborService(DatabaseConnector dbc, String tbName) {
         databaseConnector = dbc;
-        databaseName = dbName;
         tableName = tbName;
     }
 
-    public void createNeighbor(Neighbor neighbor) {
+    public void createNeighbor(String phoneNumber, String username) {
         try (Connection conn = this.databaseConnector.getConnection()) {
             PreparedStatement pstmt = conn.prepareStatement(
-                    "insert into " + tableName + "(id, phoneNumber, username) values(?,?,?)"
+                    "insert into " + tableName + "(phonenumber, username) values(?,?)"
             );
 
-            pstmt.setString(1, neighbor.id());
-            pstmt.setString(2, neighbor.phoneNumber());
-            pstmt.setString(3, neighbor.username());
-            pstmt.execute();
+            pstmt.setString(1, phoneNumber);
+            pstmt.setString(2, username);
+            pstmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Error when creating a neighbor\n" + e);
         }
@@ -43,10 +41,9 @@ public class NeighborService {
 
             while (rs.next()) {
                 String phoneNumber = rs.getString("phonenumber");
-                String id = username + phoneNumber;
-
+                Integer id = rs.getInt("id");
                 returnThis.add(new Neighbor(
-                        id,
+                        id.toString(),
                         phoneNumber,
                         username));
             }

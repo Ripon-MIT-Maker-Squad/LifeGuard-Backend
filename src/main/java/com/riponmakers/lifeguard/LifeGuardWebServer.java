@@ -13,6 +13,8 @@ import com.riponmakers.lifeguard.endpoints.UserEndpoint;
 import io.helidon.config.Config;
 import io.helidon.openapi.OpenAPISupport;
 import io.helidon.webserver.Routing;
+import io.helidon.webserver.ServerRequest;
+import io.helidon.webserver.ServerResponse;
 import io.helidon.webserver.WebServer;
 
 
@@ -49,64 +51,90 @@ public class LifeGuardWebServer {
         final DeviceService testDeviceService = new DeviceService(testDatabaseConnector, "testlifeguarddb", "testDevices", "testlifeguardusers");
         logger.logLine("databases connected");
 
-        /*
-         * Extract the exposed parameters in the url to
-         * validate and perform operations,
-         * Comments provided directly from the LifeGuard API docs
-         */
-        var serverRouting = routing(userService, deviceService, neighborService, logger);
-        assert serverRouting != null;
+        //create endpoints to be used in routing
+        UserEndpoint userEndpoint = new UserEndpoint(userService, deviceService, neighborService, mapper, logger);
+        DeviceEndpoint deviceEndpoint = new DeviceEndpoint(deviceService, userService, mapper, logger);
+        NeighborEndpoint neighborEndpoint = new NeighborEndpoint(neighborService, userService, mapper, logger);
+
+        UserEndpoint TuserEndpoint = new UserEndpoint(testUserService, testDeviceService, testNeighborService, mapper, logger);
+        DeviceEndpoint TdeviceEndpoint = new DeviceEndpoint(testDeviceService, testUserService, mapper, logger);
+        NeighborEndpoint TneighborEndpoint = new NeighborEndpoint(testNeighborService, testUserService, mapper, logger);
+
+        //load api file
+        Config config = Config.create();
+
+
+        final Routing routing = Routing.builder()
+                // This post does not need a device id because that'll happen after
+                // the account is created
+                .get("/user", userEndpoint::get)
+                .post("/user", userEndpoint::post)
+                .delete("/user", userEndpoint::delete)
+
+                .get("/test/user", TuserEndpoint::get)
+                .post("/test/user", TuserEndpoint::post)
+                .delete("/test/user", TuserEndpoint::delete)
+
+                .get("/device", deviceEndpoint::get)
+                .post("/device", deviceEndpoint::post)
+                .delete("/device", deviceEndpoint::delete)
+
+                .get("/test/device", TdeviceEndpoint::get)
+                .post("/test/device", TdeviceEndpoint::post)
+                .delete("/test/device", TdeviceEndpoint::delete)
+
+                .get("/neighbor", neighborEndpoint::get)
+                .post("/neighbor", neighborEndpoint::post)
+                .delete("/neighbor", neighborEndpoint::delete)
+
+                .get("/test/neighbor", TneighborEndpoint::get)
+                .post("/test/neighbor", TneighborEndpoint::post)
+                .delete("/test/neighbor", TneighborEndpoint::delete)
+
+                // /openapi path
+                .register(OpenAPISupport.create(config))
+
+                // /cvhacks path
+                .get("/cvhacks", LifeGuardWebServer::cvhacks)
+
+                .build();
         logger.logLine("production server routing created");
 
-        WebServer server = WebServer.builder(serverRouting).port(1026).build();
+
+
+        WebServer server = WebServer.builder().port(80).build();
         server.start();
         logger.logLine("production server started");
 
 
-        var testServerRouting = routing(testUserService, testDeviceService, testNeighborService, logger);
-        assert testServerRouting != null;
-        logger.logLine("test server routing created");
+//        var testServerRouting = routing(testUserService, testDeviceService, testNeighborService, logger);
+//        assert testServerRouting != null;
+//        logger.logLine("test server routing created");
 
-        WebServer testServer = WebServer.builder(testServerRouting).port(1027).build();
-        testServer.start();
-        logger.logLine("test server started");
+//        WebServer testServer = WebServer.builder(testServerRouting).port(443).build();
+//        testServer.start();
+//        logger.logLine("test server started");
 
         /*
          * Swagger API documentation server
          * */
 
         //Automatically loads /resources/META-INF/openapi.yaml
-        Config config = Config.create();
+//        Config config = Config.create();
 
         //create /openapi pathing
-        Routing openAPIRouting = Routing.builder()
-                .register(OpenAPISupport.create(config))
-                .build();
-        logger.logLine("api routing created");
+//        Routing openAPIRouting = Routing.builder()
+//                .register(OpenAPISupport.create(config))
+//                .build();
+//        logger.logLine("api routing created");
 
-        WebServer openAPIServer = WebServer.builder(openAPIRouting).port(1028).build();
-        openAPIServer.start();
-        logger.logLine("api server started");
-
+//        WebServer openAPIServer = WebServer.builder(openAPIRouting).port(443).build();
+//        openAPIServer.start();
+//        logger.logLine("api server started");
     }
 
-    private static Routing routing(UserService userService, DeviceService deviceService, NeighborService neighborService, Logger logger) {
-        var userEndpoint = new UserEndpoint(userService, deviceService, neighborService, mapper, logger);
-        var deviceEndpoint = new DeviceEndpoint(deviceService, userService, mapper, logger);
-        var neighborEndpoint = new NeighborEndpoint(neighborService, userService, mapper, logger);
-        Routing routing = Routing.builder()
-                // This post does not need a device id because that'll happen after
-                // the account is created
-                .get("/user", userEndpoint::get)
-                .post("/user", userEndpoint::post)
-                .delete("/user", userEndpoint::delete)
-                .get("/device", deviceEndpoint::get)
-                .post("/device", deviceEndpoint::post)
-                .delete("/device", deviceEndpoint::delete)
-                .get("/neighbor", neighborEndpoint::get)
-                .post("/neighbor", neighborEndpoint::post)
-                .delete("/neighbor", neighborEndpoint::delete)
-                .build();
-        return routing;
+    private static void cvhacks(ServerRequest req, ServerResponse res) {
+        res.status(200);
+        res.send("in progress");
     }
 }

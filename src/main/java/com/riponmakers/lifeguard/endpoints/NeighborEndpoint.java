@@ -92,7 +92,7 @@ public class NeighborEndpoint {
                     response.send(e.getMessage() + "\n\n" + Arrays.toString(e.getStackTrace()));
                 }
 
-                String id = "";
+                long id = -1;
                 // TODO: make the post return the id so this garbage doesnt happen AND
                 // TODO: so the neighbors var can be final
 
@@ -129,14 +129,18 @@ public class NeighborEndpoint {
         String id = request.queryParams().first("id").isPresent()
                 ? request.queryParams().first("id").get()
                 : "null";
+        logger.logLine("aasdfasfasfdasdf");
 
-        if(id.equals("null") || service.getNeighborByID(id) == null) {
-            response.status(404);
+        if(id.equals("null") || service.getNeighborByID(Long.parseLong(id)) == null) {
+            logger.logLine("id is: " + id + ", and getneighborbyid is" + service.getNeighborByID(Long.parseLong(id)));
+
+            response.status(400);
             response.send();
+            return;
         }
 
         try {
-            final var neighbor = service.getNeighborByID(id);
+            final var neighbor = service.getNeighborByID(Long.parseLong(id));
             final var responseMessage = mapper.writeValueAsString(neighbor);
 
             service.removeNeighbor(id);

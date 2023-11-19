@@ -54,9 +54,15 @@ paths:
 
           description: The request method (PUT, etc) is not supported
           content:
-            application/json:
+            text/html:
               schema:
-                $ref: "#/components/schemas/ambiguousErrorSchema"
+                $ref: "#/components/schemas/HTTPErrorSchema"
+        '500':
+          description: The request failed serverside, check error log for more information
+          content:
+            text/html:
+              schema:
+                $ref: "#/components/schemas/HTTPErrorSchema"
     delete:
       summary: deletes a user
       parameters:
@@ -69,6 +75,18 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/userSchema"
+        '403':
+          description: The user identification token is not linked to the specified username
+          content:
+            application/json:
+              schema:
+                type: object
+        '404':
+          description: The username was invalid, no user deleted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPErrorSchema"
   /user:
     post:
       summary: creates a user
@@ -91,9 +109,9 @@ paths:
         '400':
           description: The url provided does not have the required information
           content:
-            application/json:
+            text/html:
               schema:
-                $ref: "#/components/schemas/ambiguousErrorSchema"
+                $ref: "#/components/schemas/HTTPErrorSchema"
         '401':
           #Although the HTTP standard specifies "unauthorized", semantically this response means "unauthenticated". That is, the client must authenticate itself to get the requested response.
 
@@ -107,9 +125,9 @@ paths:
 
           description: The request method (PUT, DELETE, etc) is not supported
           content:
-            application/json:
+            text/html:
               schema:
-                $ref: "#/components/schemas/ambiguousErrorSchema"
+                $ref: "#/components/schemas/HTTPErrorSchema"
         '408':
           #This response is sent on an idle connection by some servers, even without any previous request by the client. It means that the server would like to shut down this unused connection. This response is used much more since some browsers, like Chrome, Firefox 27+, or IE9, use HTTP pre-connection mechanisms to speed up surfing. Also note that some servers merely shut down the connection without sending this message.
 
@@ -163,15 +181,18 @@ paths:
 
           description: The request method (PUT, DELETE, etc) is not supported
           content:
-            application/json:
+            text/html:
               schema:
-                $ref: "#/components/schemas/ambiguousErrorSchema"
+                $ref: "#/components/schemas/HTTPErrorSchema"
   /device:
     post:
       summary: Add a device to a user
-      parameters:
-        - $ref: "#/components/parameters/userTokenParam"
-        - $ref: "#/components/parameters/deviceIDParam"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/postDeviceSchema"
       responses:
         '201':
           description: The device has been registered for the given
@@ -202,30 +223,28 @@ paths:
             application/json:
               schema:
                 type: object
-        '405':
-          #The request method is known by the server but is not supported by the target resource. For example, an API may not allow calling DELETE to remove a resource.
 
-          description: The request method (PUT, DELETE, etc) is not supported
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ambiguousErrorSchema"
-  /neighbors/?userToken={userToken}&username={username}:
+  /neighbor/?userToken={userToken}&username={username}:
     get:
       summary: get an array of neighbors using a username
       parameters:
         - $ref: "#/components/parameters/userTokenParam"
-        - $ref: "#/components/parameters/deviceIDParam"
+        - $ref: "#/components/parameters/usernameParam"
       responses:
         '200':
           #The request succeeded
           #GET: The resource has been fetched and transmitted in the message body.
-
           description: A JSON array with neighbor phone numbers, the username and userToken valid
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/neighborSchema"
+                $ref: "#/components/schemas/neighborsSchema"
+        '400':
+          description: Empty JSON array, the user identification token is valid, but not linked to the requested user's neighbors.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPErrorSchema"
         '401':
           #Although the HTTP standard specifies "unauthorized", semantically this response means "unauthenticated". That is, the client must authenticate itself to get the requested response.
 
@@ -237,7 +256,7 @@ paths:
         '403':
           #The client does not have access rights to the content; that is, it is unauthorized, so the server is refusing to give the requested resource. Unlike 401 Unauthorized, the client's identity is known to the server.
 
-          description: Empty JSON arrya, the user identification token provided is not a valid user.
+          description: Empty JSON array, the user identification token provided is not a valid user.
           content:
             application/json:
               schema:
@@ -255,9 +274,74 @@ paths:
 
           description: The requested RESTful method (PUT, DELETE, etc) is not supported
           content:
+            text/html:
+              schema:
+                $ref: "#/components/schemas/HTTPErrorSchema"
+  /neighbor:
+    post:
+      summary: get an array of neighbors using a username
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/postNeighborSchema"
+      responses:
+        '201':
+          #The request succeeded
+          #GET: The resource has been fetched and transmitted in the message body.
+          description: Created a new neighbor under given user
+          content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ambiguousErrorSchema"
+                $ref: "#/components/schemas/neighborSchema"
+        '400':
+          description: The url does not have the required information
+          content:
+            application/json:
+              schema:
+                type: object
+        '401':
+          #Although the HTTP standard specifies "unauthorized", semantically this response means "unauthenticated". That is, the client must authenticate itself to get the requested response.
+
+          description: The provided userToken is not known, username state is unknown, no user created
+          content:
+            application/json:
+              schema:
+                type: object
+        '403':
+          #The client does not have access rights to the content; that is, it is unauthorized, so the server is refusing to give the requested resource. Unlike 401 Unauthorized, the client's identity is known to the server.
+
+          description: The userToken is recognized, but the phone number is not connected to the user's userToken
+          content:
+            application/json:
+              schema:
+                type: object
+  /neighbor/?userToken={userToken}&neighborID={neighborID}:
+    delete:
+      summary: delete a single neighbor
+      parameters:
+        - $ref: "#/components/parameters/userTokenParam"
+        - $ref: '#/components/parameters/neighborIDParam'
+      responses:
+        '201':
+          description: A JSON array with neighbor phone numbers, the username and userToken valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/neighborsSchema"
+        '403':
+          description: The user identification token is not linked to the specified username
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          description: the id is not valid, no user deleted`
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPErrorSchema"
 
 components:
   schemas:
@@ -268,13 +352,23 @@ components:
           type: string
         username:
           type: string
-
     neighborSchema:
-      type: array
+      type: object
       properties:
+        id:
+          type: integer
+        username:
+          type: string
         phoneNumber:
           type: string
-    ambiguousErrorSchema:
+    neighborsSchema:
+      type: array
+      properties:
+        username:
+          type: string
+        phoneNumber:
+          type: string
+    HTTPErrorSchema:
       type: object
       properties:
         explanation:
@@ -284,8 +378,6 @@ components:
       properties:
         username:
           type: string
-        deviceID:
-          type: integer
         isHome:
           type: boolean
         poolIsSupervised:
@@ -300,6 +392,24 @@ components:
         username:
           description: (the connected user's username)
           type: string
+    postDeviceSchema:
+      type: object
+      properties:
+        userToken:
+          type: string
+        username:
+          type: string
+        deviceID:
+          type: integer
+    postNeighborSchema:
+      type: object
+      properties:
+        userToken:
+          type: string
+        username:
+          type: string
+        phoneNumber:
+          type: string
   parameters:
     userTokenParam:
       name: userToken
@@ -308,7 +418,6 @@ components:
       required: true
       schema:
         type: string
-
     usernameParam:
       name: username
       in: path
@@ -320,6 +429,13 @@ components:
       name: deviceID
       in: path
       description: the unique id of a device
+      required: true
+      schema:
+        type: integer
+    neighborIDParam:
+      name: neighborID
+      in: path
+      description: auto incrementing neighbor id
       required: true
       schema:
         type: integer

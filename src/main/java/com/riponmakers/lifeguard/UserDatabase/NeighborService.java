@@ -41,9 +41,9 @@ public class NeighborService {
 
             while (rs.next()) {
                 String phoneNumber = rs.getString("phonenumber");
-                Integer id = rs.getInt("id");
+                long id = rs.getLong("id");
                 returnThis.add(new Neighbor(
-                        id.toString(),
+                        id,
                         phoneNumber,
                         username));
             }
@@ -88,13 +88,13 @@ public class NeighborService {
         }
     }
 
-    public Neighbor getNeighborByID(String id) {
+    public Neighbor getNeighborByID(long id) {
         try(Connection conn = this.databaseConnector.getConnection()) {
             PreparedStatement pstmt = conn.prepareStatement(
                     "select phonenumber, username from " + tableName + " where id = ?"
             );
 
-            pstmt.setString(1, id);
+            pstmt.setLong(1, id);
             ResultSet result = pstmt.executeQuery();
             var neighbor = new Neighbor(id, result.getString("phonenumber"), result.getString("username"));
             result.close();

@@ -95,9 +95,7 @@ public class LifeGuardWebServer {
                 .get("/test/neighbor", TneighborEndpoint::get)
                 .post("/test/neighbor", TneighborEndpoint::post)
                 .delete("/test/neighbor", TneighborEndpoint::delete)
-
-                .get("/cruzhacks", chEndpoint::get)
-                .get("/cruzhacks/user", chEndpoint::getUser)
+                
                 //alerts
 //                .post("/alert", alertEndpoint::alert)
 //                .post("/test/alert", TalertEndpoint::alert)

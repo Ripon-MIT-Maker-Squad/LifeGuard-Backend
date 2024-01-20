@@ -4,13 +4,18 @@ plugins {
 }
 
 group = "com.riponmakers.lifeguard"
-version = "0.0.13"
+version = "0.0.14"
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    /*
+    * TWILIO
+    * */
+    implementation("com.twilio.sdk:twilio:10.0.0-rc.6")
+
     /*
     * TEST CONTAINERS
     * */

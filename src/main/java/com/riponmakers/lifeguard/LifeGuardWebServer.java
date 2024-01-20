@@ -7,6 +7,8 @@ import com.riponmakers.lifeguard.UserDatabase.DatabaseConnector;
 import com.riponmakers.lifeguard.UserDatabase.DeviceService;
 import com.riponmakers.lifeguard.UserDatabase.NeighborService;
 import com.riponmakers.lifeguard.UserDatabase.UserService;
+import com.riponmakers.lifeguard.cruzhacks.CHEndpoint;
+import com.riponmakers.lifeguard.endpoints.AlertEndpoint;
 import com.riponmakers.lifeguard.endpoints.DeviceEndpoint;
 import com.riponmakers.lifeguard.endpoints.NeighborEndpoint;
 import com.riponmakers.lifeguard.endpoints.UserEndpoint;
@@ -52,17 +54,20 @@ public class LifeGuardWebServer {
         logger.logLine("databases connected");
 
         //create endpoints to be used in routing
-        UserEndpoint userEndpoint = new UserEndpoint(userService, deviceService, neighborService, mapper, logger);
-        DeviceEndpoint deviceEndpoint = new DeviceEndpoint(deviceService, userService, mapper, logger);
-        NeighborEndpoint neighborEndpoint = new NeighborEndpoint(neighborService, userService, mapper, logger);
+        final UserEndpoint userEndpoint = new UserEndpoint(userService, deviceService, neighborService, mapper, logger);
+        final DeviceEndpoint deviceEndpoint = new DeviceEndpoint(deviceService, userService, mapper, logger);
+        final NeighborEndpoint neighborEndpoint = new NeighborEndpoint(neighborService, userService, mapper, logger);
+//        final AlertEndpoint alertEndpoint = new AlertEndpoint();
 
         UserEndpoint TuserEndpoint = new UserEndpoint(testUserService, testDeviceService, testNeighborService, mapper, logger);
         DeviceEndpoint TdeviceEndpoint = new DeviceEndpoint(testDeviceService, testUserService, mapper, logger);
         NeighborEndpoint TneighborEndpoint = new NeighborEndpoint(testNeighborService, testUserService, mapper, logger);
+//        final AlertEndpoint TalertEndpoint = new AlertEndpoint();
 
         //load api file
         Config config = Config.create();
 
+        final CHEndpoint chEndpoint = new CHEndpoint();
 
         final Routing routing = Routing.builder()
                 // This post does not need a device id because that'll happen after
@@ -91,18 +96,24 @@ public class LifeGuardWebServer {
                 .post("/test/neighbor", TneighborEndpoint::post)
                 .delete("/test/neighbor", TneighborEndpoint::delete)
 
+                .get("/cruzhacks", chEndpoint::get)
+                .get("/cruzhacks/user", chEndpoint::getUser)
+                //alerts
+//                .post("/alert", alertEndpoint::alert)
+//                .post("/test/alert", TalertEndpoint::alert)
+
                 // /openapi path
                 .register(OpenAPISupport.create(config))
 
                 // /cvhacks path
                 .get("/cvhacks", LifeGuardWebServer::cvhacks)
-
+                .get("/home")
                 .build();
         logger.logLine("production server routing created");
 
 
 
-        WebServer server = WebServer.builder().port(80).build();
+        WebServer server = WebServer.builder(routing).port(1027).build();
         server.start();
         logger.logLine("production server started");
 

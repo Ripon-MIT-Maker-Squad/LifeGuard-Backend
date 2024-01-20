@@ -85,7 +85,7 @@
  .idea/modules
  *.iml
  *.ipr
-
+.build/**
 # CMake
 cmake-build-*/
 
@@ -132,3 +132,12 @@ fabric.properties
 *.probe
 *.tar
 *.zip
+*.env
+*.bin
+*.uniqueId0
+*.uniqueId4
+*.uniqueId6
+*.uniqueId2
+*.uniqueId5
+*.uniqueId3
+*.uniqueId1

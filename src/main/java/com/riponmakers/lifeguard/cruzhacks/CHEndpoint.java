@@ -5,7 +5,7 @@ import io.helidon.webserver.ServerResponse;
 
 public class CHEndpoint {
     public void get(ServerRequest req, ServerResponse res) {
-
+//        res.send(...);
     }
 
     public void getUser(ServerRequest req, ServerResponse res) {
